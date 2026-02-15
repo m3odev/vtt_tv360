@@ -1,12 +1,10 @@
 import requests
-import uuid
 
 class TV360:
     def __init__(self):
         self.session = requests.Session()
 
         self.headers = {
-            "Cookie": "JSESSIONID=7B0C8A0078B7FF68E1C3D77890DB9F2D",
             "lang": "vi",
             "User-Agent": "TV360/5 CFNetwork/3860.300.31 Darwin/25.2.0",
             "tz": "Asia/Ho_Chi_Minh",
@@ -22,7 +20,7 @@ class TV360:
             "osapptype": "IOS",
             "tv360transid": "1771131577_D159607B-0387-40DC-B102-5AE70B16A0F4",
         }
-        self.token = None
+
         self.device_info = {
             "osType": "IOS",
             "deviceId": "D159607B-0387-40DC-B102-5AE70B16A0F4",
@@ -32,6 +30,8 @@ class TV360:
             "osVersion": "26.2.1",
             "screenSize": "1290x2796"
         }
+
+        self.token = None
 
     def login_with_4g(self):
         url = "http://api.tv360.vn/public/v1/auth/auto-login-http"
@@ -47,35 +47,57 @@ class TV360:
             "deviceInfo": self.device_info,
             "screenSize": "1290x2796"
         }
-        
+
         r = self.session.post(
             url,
             json=payload,
             headers=self.headers,
             timeout=5
         )
-        if r.status_code == 200:
+
+        print("Login status:", r.status_code)
+        print("Cookies:", self.session.cookies.get_dict())
+
+        if r.ok:
             result = r.json()
-            print("Login:",result)
-            self.token = result.get('data',{}).get('accessToken')
+            print("Login result:", result)
+            self.token = result.get("data", {}).get("accessToken")
 
-
-    def _receiver_lucky_money(self):
-        url  = "https://game-mov.tv360.vn/api/f/receiver-lucky-money"
-        headers = self.headers
-        headers.update({
-            "Authorization":f"Bearer {self.token}",
+    def mov_website(self):
+        url = f"https://game-mov.tv360.vn/?token={self.token}"
+        headers = {
+            **self.headers,
+            "Authorization": f"Bearer {self.token}",
             "Referer": f"https://game-mov.tv360.vn/?token={self.token}"
-        })
-        r = self.session.post(
-            url,
-            headers=self.headers,
+        }
+        result = self.session.get(url,
+            headers=headers,
             timeout=5
         )
-        print(r.status_code)
+    def receiver_lucky_money(self):
+        if not self.token:
+            raise RuntimeError("Chưa login hoặc không có token")
+
+        url = "https://game-mov.tv360.vn/api/f/receiver-lucky-money"
+
+        headers = {
+            **self.headers,
+            "Authorization": f"Bearer {self.token}",
+            "Referer": f"https://game-mov.tv360.vn/?token={self.token}"
+        }
+
+        r = self.session.post(
+            url,
+            headers=headers,
+            timeout=5
+        )
+
+        print("Lucky status:", r.status_code)
         print(r.text)
+
 
 if __name__ == "__main__":
     vtt = TV360()
     vtt.login_with_4g()
-    vtt._receiver_lucky_money()
+    vtt.mov_website()
+    vtt.receiver_lucky_money()
