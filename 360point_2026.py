@@ -6,6 +6,7 @@ class TV360:
         self.session = requests.Session()
 
         self.headers = {
+            "Cookie": "JSESSIONID=7B0C8A0078B7FF68E1C3D77890DB9F2D",
             "lang": "vi",
             "User-Agent": "TV360/5 CFNetwork/3860.300.31 Darwin/25.2.0",
             "tz": "Asia/Ho_Chi_Minh",
