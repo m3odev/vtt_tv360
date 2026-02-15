@@ -55,6 +55,7 @@ class TV360:
         )
         if r.status_code == 200:
             result = r.json()
+            print("Login:",result")
             self.token = result.get('data',{}).get('accessToken')
 
 
